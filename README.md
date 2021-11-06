@@ -1,19 +1,22 @@
 # coil
-코루틴 기반 협력 스레딩 모듈
+>가벼운 코루틴 기반 협력 스레딩 모듈
 
-## 사용법
-- 사용방법
+## 사용방법
   ```lua
   coil = require "coil"
   ```
 - 각 프레임의 시작 부분에서 `coil.update()` 를 호출하고 `deltaTime`을 제공해야 합니다.
+
   ```lua
   coil.update(deltaTime)
+  ```
 
+  ```lua
   -- 사용 예시
   Client.onTick.Add(coil.update)
   ```
-- 코일은 각 협력 스레드를 *작업*으로 참조합니다. 새로운 작업을 만들 수 있습니다 `coil.add()` 함수를 사용합니다.
+
+- 코일은 각 협력 스레드를 *tasks* 에서 참조합니다. `coil.add()`함수로 새로운 `task`를 생성합니다.
   ```lua
   -- coil.update()에 델타 타임 제공
   Client.onTick.Add(coil.update)
@@ -30,7 +33,7 @@
 ### coil.wait()
 
 -  이 함수는 업데이트 하기 전에 다른 이벤트를 기다리는 데 사용할 수 있습니다.
-- `wait` 함수에 인수로 숫자를 사용하여 호출되면 해당 초만큼 기다립니다.
+- `wait` 함수에 인수로 숫자를 사용하여 호출되면 해당 시간(초) 만큼 기다립니다.
 - `coil.callback()` 에 의해 생성된 콜백으로 `wait` 가 호출되면 해당 콜백 함수가 호출 될 때 까지 `yield` 상태가 됩니다.
 - `wait` 가 인수 없이 호출되면 다음 프레임까지 기다립니다.
 
@@ -111,6 +114,8 @@
 
 
 ## License
-  * This library is free software; you can redistribute it and/or modify it under
-  the terms of the MIT license. See [LICENSE](LICENSE) for details.
+> This library is free software you can redistribute it and/or modify it under the terms of the MIT license. See [LICENSE](LICENSE) for details.
 
+
+## 원본
+* https://github.com/rxi/coil
