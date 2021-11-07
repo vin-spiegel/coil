@@ -58,7 +58,6 @@ end
 -- - 델타타임을 제공받는 업데이트 함수입니다
 ---@param dt numeber 델타타임
 function coil:update(dt)
-  -- print(dt)
   if #self == 0 then
     return
   end
