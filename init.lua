@@ -7,28 +7,28 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local coil = { _version = "0.1.0" }
+local coil = {_version = "0.1.0"}
 coil.__index = coil
 coil.tasks = {}
 
-
 local unpack = unpack or table.unpack
 
-local _assert = function(cond, msg, lvl) 
-  if cond then return cond, msg, lvl end
+local _assert = function(cond, msg, lvl)
+  if cond then
+    return cond, msg, lvl
+  end
   error(msg, lvl + 1)
 end
 
-local callback_mt = { 
+local callback_mt = {
   __call = function(t, ...)
     t.args = {...}
     t.ready = true
-  end}
+  end
+}
 
-
-local task = {} 
+local task = {}
 task.__index = task
-
 
 function task.new(fn, parent)
   local self = setmetatable({}, task)
@@ -38,28 +38,27 @@ function task.new(fn, parent)
   return self
 end
 
-
 function task:pause()
   self.pausecount = self.pausecount + 1
 end
-
 
 function task:resume()
   _assert(self.pausecount > 0, "unbalanced resume()", 2)
   self.pausecount = self.pausecount - 1
 end
 
-
 function task:stop()
   coil.remove(self.parent, self)
 end
 
-
-
+-- - 델타타임을 제공받는 업데이트 함수입니다
+---@param dt numeber 델타타임
 function coil:update(dt)
-  if #self == 0 then return end
+  if #self == 0 then
+    return
+  end
   coil.deltatime = dt
-  for i = #self, 1, -1 do 
+  for i = #self, 1, -1 do
     local task = self[i]
     if task.wait then
       -- Handle wait
@@ -88,14 +87,16 @@ function coil:update(dt)
   coil.current = nil
 end
 
-
+-- - `coil.update` 함수로 실행될 새로운 `task` 를 추가합니다
+---@param fn function 콜백 함수
+---@return table `task`
 function coil:add(fn)
   local t = task.new(fn, self)
   table.insert(self, t)
   return t
 end
 
-
+-- - `task`를 삭제합니다
 function coil:remove(t)
   if type(t) == "number" then
     self[t] = self[#self]
@@ -109,7 +110,8 @@ function coil:remove(t)
   end
 end
 
-
+-- - `task` 내의 스크립트를 잠시 멈춰줍니다
+---@param y number 시간 (초)
 function coil.wait(x, y)
   -- Discard first argument if its a coil group
   x = getmetatable(x) == coil and y or x
@@ -126,9 +128,11 @@ function coil.wait(x, y)
     end
   else
     -- Handle next-frame / callback wait
-    _assert(x == nil or getmetatable(x) == callback_mt,
-            "wait() expected number, callback object or nothing as argument",
-            2)
+    _assert(
+      x == nil or getmetatable(x) == callback_mt,
+      "wait() expected number, callback object or nothing as argument",
+      2
+    )
     c.waitrem = nil
     c.wait = x
   end
@@ -143,22 +147,26 @@ function coil.wait(x, y)
   end
 end
 
-
+-- - `coil.add()`로 추가된 `task`를 `call`할 수 있습니다
 function coil.callback()
-  return setmetatable({ ready = false }, callback_mt)
+  return setmetatable({ready = false}, callback_mt)
 end
 
-
+-- - 그루핑 함수입니다 coil의 모든 메소드를 사용할 수 있습니다
 function coil.group()
   return setmetatable({}, coil)
 end
 
-
-
 local bound = {
-  update  = function(...) return coil.update(coil.tasks, ...) end,
-  add     = function(...) return coil.add(coil.tasks, ...) end,
-  remove  = function(...) return coil.remove(coil.tasks, ...) end,
+  update = function(...)
+    return coil.update(coil.tasks, ...)
+  end,
+  add = function(...)
+    return coil.add(coil.tasks, ...)
+  end,
+  remove = function(...)
+    return coil.remove(coil.tasks, ...)
+  end
 }
 setmetatable(bound, coil)
 
