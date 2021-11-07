@@ -35,7 +35,41 @@
 -  이 함수는 업데이트 하기 전에 다른 이벤트를 기다리는 데 사용할 수 있습니다.
 - `wait` 함수에 인수로 숫자를 사용하여 호출되면 해당 시간(초) 만큼 기다립니다.
 - `coil.callback()` 에 의해 생성된 콜백으로 `wait` 가 호출되면 해당 콜백 함수가 호출 될 때 까지 `yield` 상태가 됩니다.
-- `wait` 가 인수 없이 호출되면 다음 프레임까지 기다립니다.
+- `wait` 가 인수 없이 호출되면 바로 다음 프레임까지만 기다립니다.
+
+  ```lua
+  local coil = require("lib/coil.init")
+
+  --coil.update함수에 온틱 deltaTime 매개변수 전달
+  Client.onTick.Add(coil.update)
+
+  local task = {
+      -- coil.callback 함수를 coil.wait함수에 매개변수로 전달하면 `task`를 호출합니다
+      call = coil.callback()
+  }
+
+  function task.say()
+      print("이 함수는 다른 이벤트를 기다리는 데 사용할 수 있습니다")
+      coil.wait(2)
+      print("wait 함수에 인수로 숫자를 사용하여 호출하면")
+      coil.wait(2)
+      print("해당 시간만큼 기다립니다")
+
+      -- 여기서부터 task.call 함수가 실행되어야만 다음 줄이 실행됩니다
+      coil.wait(task.call)
+      print("call은 호출 되어야만 실행됩니다")
+  end
+  -- task 추가
+  coil.add(task.say)
+
+  -- 6 초뒤 call하기
+  coil.add(
+      function()
+          coil.wait(6)
+          task.call()
+      end
+  )
+  ```
 
 ### coil.callback()
   
@@ -57,19 +91,30 @@
 
 -  각 프레임의 시작 부분에서 호출되어야 하며 `yield`되지 않은 모든 `tasks`에 담긴 함수를 업데이트합니다. 
 
+    ```lua
+    coil.add(
+        function()
+            while true do
+                print("2초에 한번씩 실행됩니다")
+                coil.wait(2)
+            end
+        end
+    )
+    ```
+
 ### coil.add(fn)
   
 -  새 작업을 추가하면 작업이 `coil.update()`에 대한 다음 호출에서 매 프레임 실행되기 시작합니다.
 
-  ```lua
-  -- prints "hello world" every 2 seconds
-  coil.add(function()
-    while 1 do
-      print("hello world")
-      coil.wait(2)
-    end
-  end)
-  ```
+    ```lua
+    -- prints "hello world" every 2 seconds
+    coil.add(function()
+      while 1 do
+        print("hello world")
+        coil.wait(2)
+      end
+    end)
+    ```
 
 ## 작업 멈추기
 - `task`는 `:stop()` 메서드를 호출하여 언제든지 중지 및 제거할 수 있습니다.
