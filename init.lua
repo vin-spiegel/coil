@@ -7,6 +7,14 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+local onTick = (function()
+  if Server then
+    return Server.onTick
+  elseif Client then
+    return Client.onTick
+  end
+end)()
+
 local coil = {_version = "0.1.0"}
 coil.__index = coil
 coil.tasks = {}
@@ -27,9 +35,11 @@ local callback_mt = {
   end
 }
 
+---@class task
 local task = {}
 task.__index = task
 
+---@return task task
 function task.new(fn, parent)
   local self = setmetatable({}, task)
   self.routine = coroutine.wrap(fn)
@@ -47,13 +57,14 @@ function task:resume()
   self.pausecount = self.pausecount - 1
 end
 
-function task:stop()
+function task:stop(updateFunc)
   coil.remove(self.parent, self)
 end
 
 -- - 델타타임을 제공받는 업데이트 함수입니다
 ---@param dt numeber 델타타임
 function coil:update(dt)
+  -- print(dt)
   if #self == 0 then
     return
   end
@@ -148,6 +159,7 @@ function coil.wait(x, y)
 end
 
 -- - `coil.add()`로 추가된 `task`를 `call`할 수 있습니다
+-- `coil.wait()` 함수의 인자로 전달됩니다
 function coil.callback()
   return setmetatable({ready = false}, callback_mt)
 end
@@ -157,6 +169,12 @@ function coil.group()
   return setmetatable({}, coil)
 end
 
+-- - onTick 이벤트에 `update`함수 삭제 `task`는 삭제 하지 않음
+function coil:clear()
+  pcall(onTick.Remove, self.update)
+end
+
+-- 추가 메소드
 local bound = {
   update = function(...)
     return coil.update(coil.tasks, ...)
