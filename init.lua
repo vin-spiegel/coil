@@ -7,13 +7,7 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local onTick = (function()
-  if Server then
-    return Server.onTick
-  elseif Client then
-    return Client.onTick
-  end
-end)()
+local onTick = Client and Client.onTick or Server.onTick
 
 local coil = {_version = "0.1.0"}
 coil.__index = coil
@@ -172,6 +166,12 @@ end
 -- - onTick 이벤트에 `update`함수 삭제 `task`는 삭제 하지 않음
 function coil:clear()
   pcall(onTick.Remove, self.update)
+end
+
+-- - onTick 이벤트에 `update`함수를 넣어서 업데이트를 시작합니다
+function coil:start()
+  onTick.Add(self.update)
+  return self.update
 end
 
 -- 추가 메소드
